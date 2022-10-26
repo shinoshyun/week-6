@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <!-- 靜態寫法：在資料夾static/css/main.css 要這樣創建資料夾-->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/reset.css') }}">
+</head>
+
+<body>
+    <h1 class=" title">歡迎光臨，這是會員頁</h1>
+    <div class="login-system">
+        <h2>{{account}}，歡迎登入系統</h2>
+        <a href="/signout">登出系統</a>
+    </div>
+</body>
+
+</html>
