@@ -1,0 +1,40 @@
+.title {
+    padding: 0.5em;
+    text-align: center;
+    color: #fff;
+    background-color: #223344;
+    font-size: 30px;
+    font-weight: bold;
+}
+
+.login-system h2,
+.signup-system h2 {
+    font-size: 25px;
+    font-weight: bold;
+    margin-bottom: 1%;
+}
+
+.login-system,
+.signup-system {
+    text-align: center;
+    margin-top: 3em;
+}
+
+.username,
+.password,
+.account {
+    margin-bottom: 0.5em;
+    display: flex;
+    justify-content: center;
+}
+
+.username h3,
+.password h3,
+.account h3 {
+    padding-right: 5px;
+    font-size: 20px;
+}
+
+hr {
+    margin-top: 3.5em;
+}
