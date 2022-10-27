@@ -1,4 +1,6 @@
 from re import template
+import re
+from unicodedata import name
 from flask import Flask, request, render_template, redirect, session
 from flask import url_for
 
@@ -26,11 +28,12 @@ def index():
 
 @app.route("/member")
 def member():
-
     if "account" and "password" in session:  # 如果account、password有在session裡
         account = session.get("account")
+        password = session.get("password")
         return render_template("member.html", account=account)
         # return username + "，歡迎登入系統"
+
     else:  # 沒有的話就會被導到首頁
         return redirect("/")
 
@@ -48,22 +51,27 @@ def signin():
     account = request.form["account"]
     password = request.form["password"]
 
-    check = "SELECT * FROM membership WHERE name=%s and password = %s"
+    check = "SELECT * FROM membership WHERE username = %s and password = %s"
     check_val = (account, password)
     cursor.execute(check, check_val)
-    mysql_connection.commit()
 
     records = cursor.fetchall()
-    if (records.name, records.password == account and password):
-        return "ok"
+    # return records
+    if records == []:
+        return redirect("/error?message=帳號或密碼輸入錯誤")
 
-        #     session["account"] = account
-        #     session["password"] = password
-        #     return redirect("/member")
+    else:
+        check = "SELECT id, name FROM membership"
 
-        # else:
-        #     # 任一欄輸入錯的話就導去(路由/error)先預設message後面的文字
-        #     return redirect("/error?message=帳號或密碼輸入錯誤")
+        records = cursor.fetchall()
+        for r in records:
+            print(r)
+    # for i in records:
+    #     print(i)
+    # session["name"] = name
+    # session["username"] = username
+
+    # return redirect("/member")
 
 
 @app.route("/signout")
@@ -84,7 +92,6 @@ def signup():
     check = "SELECT * FROM membership WHERE username = %s"
     check_val = (username,)
     cursor.execute(check, check_val)
-    mysql_connection.commit()
 
     records = cursor.fetchall()
     if records == []:
