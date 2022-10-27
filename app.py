@@ -1,8 +1,8 @@
+from re import template
 from flask import Flask, request, render_template, redirect, session
 from flask import url_for
 
 import mysql.connector
-
 mysql_connection = mysql.connector.connect(
     host='localhost',
     port='3306',
@@ -10,8 +10,8 @@ mysql_connection = mysql.connector.connect(
     password='dumplings67',
     database='member_data'
 )
+cursor = mysql_connection.cursor(buffered=True)
 
-cursor = mysql_connection.cursor()
 
 app = Flask(__name__, static_folder="static",
             static_url_path="/")  # __name__ 代表目前執行的模組
@@ -45,22 +45,25 @@ def error():
 
 @app.route("/signin", methods=["POST"])
 def signin():
-    account = request.form["account"]  # 這是POST寫法，要把使用者在前端的資料抓進來後端，然後放進變數
+    account = request.form["account"]
     password = request.form["password"]
 
-    if (account == "test") and (password == "test"):  # 如果說帳密都是test就回傳到(路由/member)
-        # 在這一步才能把資料存到session，如果在if前面就存的話，就會連錯誤的地方都一起影響
-        session["account"] = account
-        session["password"] = password
-        return redirect("/member")
+    check = "SELECT * FROM membership WHERE name=%s and password = %s"
+    check_val = (account, password)
+    cursor.execute(check, check_val)
+    mysql_connection.commit()
 
-    elif (account == "") or (password == ""):
-        # 任一欄為空 就導去(路由/error)先預設message後面的文字
-        return redirect("/error?message=請輸入帳號、密碼")
+    records = cursor.fetchall()
+    if (records.name, records.password == account and password):
+        return "ok"
 
-    else:
-        # 任一欄輸入錯的話就導去(路由/error)先預設message後面的文字
-        return redirect("/error?message=帳號、或密碼輸入錯誤")
+        #     session["account"] = account
+        #     session["password"] = password
+        #     return redirect("/member")
+
+        # else:
+        #     # 任一欄輸入錯的話就導去(路由/error)先預設message後面的文字
+        #     return redirect("/error?message=帳號或密碼輸入錯誤")
 
 
 @app.route("/signout")
@@ -78,19 +81,29 @@ def signup():
     username = request.form["username"]
     password = request.form["password"]
 
-    # 再把資料放進mysql資料庫裡
-
+    check = "SELECT * FROM membership WHERE username = %s"
+    check_val = (username,)
+    cursor.execute(check, check_val)
     mysql_connection.commit()
 
-    cursor.execute(
-        "SELECT username FROM membership WHERE (username='" + username + "')")
     records = cursor.fetchall()
     if records == []:
-        cursor.execute("INSERT INTO membership (name, username, password) VALUES('" +
-                       name + "', '" + username + "', '" + password + "')")
-        return "可以註冊"
+        insertCommand = "INSERT INTO membership (name, username, password) VALUES(%s, %s, %s)"
+
+        insert = (name, username, password)
+
+        cursor.execute(insertCommand, insert)
+
+        # 有資安問題的做法
+        # cursor.execute("INSERT INTO membership(name, username, password)VALUES('" +
+        #                name + "','" + username + "','" + password + "')")
+
+        mysql_connection.commit()
+
+        return redirect("/")
+
     else:
-        return "不能註冊"
+        return redirect("/error?message=帳號已經被註冊")
 
 
 app.run(port=3000)
