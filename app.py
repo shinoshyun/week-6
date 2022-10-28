@@ -1,15 +1,11 @@
-from re import template
-import re
-from unicodedata import name
 from flask import Flask, request, render_template, redirect, session
-from flask import url_for
 
 import mysql.connector
 mysql_connection = mysql.connector.connect(
     host='localhost',
     port='3306',
     user='root',
-    password='dumplings67',
+    password='',
     database='member_data'
 )
 cursor = mysql_connection.cursor(buffered=True)
@@ -28,11 +24,10 @@ def index():
 
 @app.route("/member")
 def member():
-    if "account" and "password" in session:  # 如果account、password有在session裡
-        account = session.get("account")
-        password = session.get("password")
-        return render_template("member.html", account=account)
-        # return username + "，歡迎登入系統"
+
+    if "id" and "name" in session:
+        name = session["name"]
+        return render_template("member.html", account=name)
 
     else:  # 沒有的話就會被導到首頁
         return redirect("/")
@@ -51,34 +46,25 @@ def signin():
     account = request.form["account"]
     password = request.form["password"]
 
+    # 比對前端輸入的account和password
     check = "SELECT * FROM membership WHERE username = %s and password = %s"
     check_val = (account, password)
     cursor.execute(check, check_val)
 
-    records = cursor.fetchall()
-    # return records
-    if records == []:
+    records = cursor.fetchone()
+    if records == None:
         return redirect("/error?message=帳號或密碼輸入錯誤")
 
     else:
-        check = "SELECT id, name FROM membership"
-
-        records = cursor.fetchall()
-        for r in records:
-            print(r)
-    # for i in records:
-    #     print(i)
-    # session["name"] = name
-    # session["username"] = username
-
-    # return redirect("/member")
+        session["id"] = records[0]
+        session["name"] = records[1]
+        return redirect("/member")
 
 
 @app.route("/signout")
 def signout():
     session.clear()
-    # del session["account"]  # 登出以後就會完全的刪除資料，利用del把存在session裡的資料刪除
-    # del session["password"]
+
     return redirect("/")
 
 
@@ -95,18 +81,17 @@ def signup():
 
     records = cursor.fetchall()
     if records == []:
+
         insertCommand = "INSERT INTO membership (name, username, password) VALUES(%s, %s, %s)"
-
         insert = (name, username, password)
-
         cursor.execute(insertCommand, insert)
 
         # 有資安問題的做法
-        # cursor.execute("INSERT INTO membership(name, username, password)VALUES('" +
-        #                name + "','" + username + "','" + password + "')")
+        # cursor.execute("INSERT INTO membership(name, username, password)VALUES('" + name + "','" + username + "','" + password + "')")
 
         mysql_connection.commit()
-
+        session["username"] = username
+        session["password"] = password
         return redirect("/")
 
     else:
