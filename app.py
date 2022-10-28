@@ -87,8 +87,12 @@ def signup():
     cursor.execute(check, check_val)
 
     records = cursor.fetchall()
-    if records == []:
-        # 把前端的變數放入mysql，因為不知道前端輸入的是甚麼，所以用%s
+    # 如果records 不是[]，也有輸入name/username/password(三個只要有一個沒輸入)，就會被導到錯誤頁面
+    if records != [] or (name == '') or (username == '') or (password == ''):
+        return redirect("/error?message=帳號已經被註冊")
+
+    else:
+        # 把前端的變數放入mysql，因為不知道前端輸入的是甚麼，所以用%s代替
         insertCommand = "INSERT INTO membership (name, username, password) VALUES(%s, %s, %s)"
         insert = (name, username, password)  # 這是從前端拿來後端的變數，準備要放進mysql
         # cursor.execute是mysql的語法  (指令, 前端變數)
@@ -101,9 +105,6 @@ def signup():
         session["username"] = username
         session["password"] = password
         return redirect("/")
-
-    else:
-        return redirect("/error?message=帳號已經被註冊")
 
 
 app.run(port=3000)
