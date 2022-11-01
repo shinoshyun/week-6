@@ -27,7 +27,7 @@ def index():
 
 @app.route("/member")
 def member():
-    # 如果 id 和 name 都有再session裡面
+    # 如果 id 和 name 都有在session裡面
     if "id" and "name" in session:
         name = session["name"]
         return render_template("member.html", account=name)
